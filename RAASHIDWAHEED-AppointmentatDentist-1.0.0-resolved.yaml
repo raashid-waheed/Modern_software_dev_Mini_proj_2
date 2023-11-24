@@ -1,0 +1,380 @@
+---
+openapi: 3.0.0
+info:
+  title: Calender appointment API
+  description: This is a API for appointment at the dentist
+  contact:
+    email: ac9753@student.jamk.fi
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/RAASHIDWAHEED/AppointmentatDentist/1.0.0
+  description: SwaggerHub API Auto Mocking
+security:
+- apiKey: []
+tags:
+- name: admins
+  description: Secured Admin-only calls
+- name: developers
+  description: Operations available to regular developers
+paths:
+  /appointments:
+    get:
+      summary: Get all appointments
+      description: Get a list of all appointments in the calendar.
+      parameters:
+      - name: startTime
+        in: query
+        description: Start time of the period (ISO 8601 format)
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date-time
+      - name: endTime
+        in: query
+        description: End time of the period (ISO 8601 format)
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          format: date-time
+      - name: name
+        in: query
+        description: Patient's name for filtering appointments
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: services
+        in: query
+        description: Services provided by the dentist
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - x-ray
+          - root canal
+          - filling
+          - reconstruction
+          - cleaning
+          - whitening
+          - veneers
+          - extractions
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentList'
+    post:
+      summary: Create a new appointment
+      description: Create a new appointment for a dentist.
+      requestBody:
+        description: Appointment details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequestWithPatient'
+        required: true
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+        "409":
+          description: Conflict - Appointment time already booked
+  /appointments/{appointmentId}:
+    get:
+      summary: Get details of a specific appointment
+      parameters:
+      - name: appointmentId
+        in: path
+        description: ID of the appointment
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+    put:
+      summary: Update an existing appointment
+      description: Fully replace an entire existing appointment.
+      parameters:
+      - name: appointmentId
+        in: path
+        description: ID of the appointment
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Updated appointment details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentRequestWithPatient'
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found - Appointment not found
+    delete:
+      summary: Cancel an appointment
+      description: Delete an existing appointment.
+      parameters:
+      - name: appointmentId
+        in: path
+        description: ID of the appointment
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found - Appointment not found
+    patch:
+      summary: Partially update an existing appointment
+      description: Update specific fields of an existing appointment.
+      parameters:
+      - name: appointmentId
+        in: path
+        description: ID of the appointment
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Partially updated appointment details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentPatchWithPatient'
+        required: true
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found - Appointment not found
+  /appointments/search:
+    get:
+      summary: Search appointments
+      description: Search appointments based on different criteria.
+      parameters:
+      - name: services
+        in: query
+        description: Services provided by the dentist
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - x-ray
+          - root canal
+          - filling
+          - reconstruction
+          - cleaning
+          - whitening
+          - veneers
+          - extractions
+      - name: customerName
+        in: query
+        description: Customer name
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: startTime
+        in: query
+        description: Start time of the appointment (excluding lunch break)
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - 09:00
+          - 09:30
+          - 10:00
+          - 10:30
+          - 11:00
+          - 11:30
+          - 12:00
+          - 12:30
+          - 13:30
+          - 14:00
+          - 14:30
+          - 15:00
+          - 15:30
+          - 16:00
+          - 16:30
+      - name: endTime
+        in: query
+        description: End time of the appointment (excluding lunch break)
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - 09:30
+          - 10:00
+          - 10:30
+          - 11:00
+          - 11:30
+          - 12:00
+          - 12:30
+          - 14:00
+          - 14:30
+          - 15:00
+          - 15:30
+          - 16:00
+          - 16:30
+          - 17:00
+      - name: day
+        in: query
+        description: Day of the week (Monday to Friday)
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - Monday
+          - Tuesday
+          - Wednesday
+          - Thursday
+          - Friday
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentList'
+components:
+  schemas:
+    AppointmentList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Appointment'
+    AppointmentRequestWithPatient:
+      type: object
+      properties:
+        dentistId:
+          type: string
+          description: ID of the dentist
+        patient:
+          $ref: '#/components/schemas/Patient'
+        appointmentTime:
+          type: string
+          description: Date and time of the appointment
+          format: date-time
+        durationInMinutes:
+          type: integer
+          description: Duration of the appointment in minutes
+        notes:
+          type: string
+          description: Additional notes for the appointment
+        serviceProvided:
+          type: string
+          description: Service provided by the dentist
+          enum:
+          - x-ray
+          - root canal
+          - filling
+          - reconstruction
+          - cleaning
+          - whitening
+          - veneers
+          - extractions
+    AppointmentPatchWithPatient:
+      type: object
+      properties:
+        appointmentTime:
+          type: string
+          description: New date and time of the appointment
+          format: date-time
+        durationInMinutes:
+          type: integer
+          description: New duration of the appointment in minutes
+        patient:
+          $ref: '#/components/schemas/Patient'
+    Appointment:
+      type: object
+      properties:
+        appointmentId:
+          type: string
+          description: ID of the appointment
+        dentist:
+          $ref: '#/components/schemas/Dentist'
+        patient:
+          $ref: '#/components/schemas/Patient'
+        appointmentTime:
+          type: string
+          description: Date and time of the appointment
+          format: date-time
+        durationInMinutes:
+          type: integer
+          description: Duration of the appointment in minutes
+        notes:
+          type: string
+          description: Additional notes for the appointment
+    Patient:
+      type: object
+      properties:
+        patientId:
+          type: string
+          description: ID of the patient
+        fullName:
+          type: string
+          description: Full name of the patient
+        age:
+          type: integer
+          description: Age of the patient
+        gender:
+          type: string
+          description: Gender of the patient
+    Dentist:
+      type: object
+      properties:
+        dentistId:
+          type: string
+          description: ID of the dentist
+        name:
+          type: string
+          description: Name of the dentist
+        specialty:
+          type: string
+          description: Specialty of the dentist
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      name: X-API-Key
+      in: header
